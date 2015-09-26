@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <type_traits>
 
 #include <cmath>
 #include <stdint.h>
@@ -36,40 +37,82 @@ enum class coordinates {
    relative
 };
 
+template <typename T = double, typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
 struct point
 {
-   constexpr point(uint_t x_ = 0, uint_t y_ = 0) : x{x_}, y{y_} { }
-   point & operator +=(const point &other) { x += other.x; y += other.y; return *this; }
-   bool operator ==(const point &other) { return (x == other.x and y == other.y); }
+   constexpr point(T x_ = 0, T y_ = 0) : x{x_}, y{y_} { }
+   constexpr point & operator +=(const point &other) { x += other.x; y += other.y; return *this; }
+   constexpr bool operator ==(const point &other) { return (x == other.x and y == other.y); }
 
-   uint_t x, y;
+   T x, y;
 };
-point operator +(const point &a, const point &b);
+
+using area_coord = std::pair<point<uint_t>, point<uint_t>>;
+
+template <typename T>
+point<T> operator +(const point<T> &a, const point<T> &b)
+{
+   point<T> res {a};
+   return res += b;
+}
+
+template <typename T>
+std::ostream & operator <<(std::ostream &out, const point<T> &p) {
+   return out << '{' << p.x << ',' << p.y << '}';  }
+
+struct areasize
+{
+   uint_t width;
+   uint_t height;
+
+   areasize(uint_t width_ = 0, uint_t height_ = 0) : width{width_}, height{height_} { }
+   areasize(const areasize &other) : width{other.width}, height{other.height} { }
+};
 
 class bitmap
 {
    public:
-      bitmap(uint32_t *buf, uint_t width_, uint_t height_, uint_t frame_width_, uint_t frame_height_,
-                uint_t xoffset_ = 0, uint_t yoffset_ = 0) :
-         framebuf{buf}, frame_width{frame_width_}, frame_height{frame_height_}, 
-         width{width_}, height{height_}, xoffset{xoffset_}, yoffset{yoffset_} { }
+      bitmap(uint32_t *buf, areasize mapsize_, const areasize &framesize_, const areasize &offsets_) :
+         framebuf{buf}, framesize{framesize_}, mapsize{mapsize_}, offsets{offsets_} { }
 
       void clear(uint8_t defb = 255);
-      void setpixel(const point &p, const rgb_color &color = rgb_color{});
+      template <typename T> void setpixel(const point<T> &p, const rgb_color &color = {});
 
       coordinates type {coordinates::relative};
+      area_coord box() const {
+         return std::make_pair(point<uint_t>{offsets.width, offsets.height},
+                               point<uint_t>{offsets.width + mapsize.width, offsets.height + mapsize.height});
+      }
 
    private:
       uint32_t *framebuf;
-      uint_t frame_width;
-      uint_t frame_height;
-
-      uint_t width;
-      uint_t height;
-
-      uint_t xoffset;
-      uint_t yoffset;
+      areasize framesize;
+      areasize mapsize;
+      areasize offsets;
 };
+
+template <typename T>
+void bitmap::setpixel(const point<T> &p, const rgb_color &color)
+{
+   point<long> pp;
+
+   if (0 > p.x or 0 > p.y) throw std::out_of_range {"point has negative coordinates."};
+   if (std::is_floating_point<T>::value) pp = {std::lrint(p.x), std::lrint(p.y)};
+   else pp = p;
+
+   if (coordinates::absolute == type)
+   {
+      if (pp.x < offsets.width or pp.y < offsets.height or
+          pp.x > offsets.width + mapsize.width or pp.y > offsets.height + mapsize.height)
+         throw std::out_of_range {"point's absoulute coordinates are not in area"};
+      framebuf[pp.y * framesize.width + pp.x] = color;
+      return;
+   }
+
+   if (pp.x > mapsize.width or pp.y > mapsize.height)
+      throw std::out_of_range {"relative coordinates are too big for this area size"};
+   framebuf[(pp.y + offsets.height) * framesize.width + (pp.x + offsets.width)] = color;
+}
 
 class sdl_main
 {
@@ -84,27 +127,29 @@ class sdl_main
 
 class window : public sdl_main
 {
-   public: 
-      window(const char *title, uint_t width_, uint_t height_, 
-            uint_t xpos = SDL_WINDOWPOS_UNDEFINED, uint_t ypos = SDL_WINDOWPOS_UNDEFINED);
+   public:
+      window(const char *title, const areasize &winsize_,
+             uint_t xpos = SDL_WINDOWPOS_UNDEFINED, uint_t ypos = SDL_WINDOWPOS_UNDEFINED);
       ~window() { SDL_DestroyWindow(win); }
 
       void lock()   const { SDL_LockSurface(surface); }
       void unlock() const { SDL_UnlockSurface(surface); }
       void update() const { SDL_UpdateWindowSurface(win); }
 
-      bitmap * get_bitmap() { return get_bitmap(width, height); }
-      bitmap * get_bitmap(uint_t area_width, uint_t area_hight, uint_t xoffset = 0, uint_t yoffset = 0);
+      bitmap * get_bitmap() { return get_bitmap(winsize); }
+      bitmap * get_bitmap(const areasize &mapsize, const areasize &offsets = {});
 
    private:
       SDL_Window *win;
       SDL_Surface *surface;
-      uint_t width;
-      uint_t height;
+      areasize winsize;
 
       std::vector<std::unique_ptr<bitmap>> areas;
 };
 
-} // graphics namespace end
+} // grpahics namespace end
+
+
+
 
 #endif

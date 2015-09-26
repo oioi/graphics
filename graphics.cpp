@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdexcept>
 #include <cstring>
 
@@ -25,6 +26,29 @@ sdl_main::~sdl_main()
 {
    if (0 == --refs) SDL_Quit();
    init = false;
+}
+
+window::window(const char *title, const areasize &winsize_, uint_t xpos, uint_t ypos)
+   : winsize{winsize_}
+{
+   if (nullptr == (win = SDL_CreateWindow(title, xpos, ypos, winsize.width, winsize.height, SDL_WINDOW_SHOWN)))
+      throw std::runtime_error {std::string {"Could not create window: "} + SDL_GetError()};
+
+   if (nullptr == (surface = SDL_GetWindowSurface(win)))
+      throw std::runtime_error {std::string {"Could not get window surface: "} + SDL_GetError()};
+}
+
+bitmap * window::get_bitmap(const areasize &mapsize, const areasize &offsets)
+{
+   bitmap *newarea = new bitmap(static_cast<uint32_t *>(surface->pixels), mapsize, winsize, offsets);
+   areas.push_back(std::unique_ptr<bitmap> {newarea});
+   return newarea;
+}
+
+void bitmap::clear(uint8_t defb)
+{
+   for (unsigned i = 0; i < mapsize.height; i++)
+      memset(framebuf + ((i + offsets.height) * framesize.width) + offsets.width, defb, sizeof(uint32_t) * mapsize.width);
 }
 
 rgb_color::operator uint32_t() const
@@ -60,52 +84,6 @@ rgb_color hsv_color::to_rgb()
       default:
               return rgb_color(v, t, p, a);
    }
-} 
-
-point operator +(const point &a, const point &b)
-{
-   point res {a};
-   return res += b;
 }
 
-window::window(const char *title, uint_t width_, uint_t height_, uint_t xpos, uint_t ypos) :
-   width{width_}, height{height_}
-{
-   if (nullptr == (win = SDL_CreateWindow(title, xpos, ypos, width, height, SDL_WINDOW_SHOWN)))
-      throw std::runtime_error {std::string {"Could not create window: "} + SDL_GetError()};
-
-   if (nullptr == (surface = SDL_GetWindowSurface(win)))
-      throw std::runtime_error {std::string {"Could not get window surface: "} + SDL_GetError()};
-}
-
-bitmap * window::get_bitmap(uint_t area_width, uint_t area_height, uint_t xoffset, uint_t yoffset)
-{
-   bitmap *newarea = new bitmap(static_cast<uint32_t *>(surface->pixels), area_width, area_height, width, height, xoffset, yoffset);
-   areas.push_back(std::unique_ptr<bitmap> {newarea});
-   return newarea;
-}
-
-void bitmap::clear(uint8_t defb)
-{
-   for (unsigned i = 0; i < height; i++)
-      memset(framebuf + ((i + yoffset) * frame_width) + xoffset, defb, sizeof(uint32_t) * width);
-}
-
-void bitmap::setpixel(const point &p, const rgb_color &color)
-{
-   unsigned long x = lrint(p.x);
-   unsigned long y = lrint(p.y);
-
-   if (coordinates::absolute == type)
-   {
-      if (x < xoffset or y < yoffset or x > width + xoffset or y > height + yoffset)
-         throw std::out_of_range("point's absoulute coordinates are not in area");
-      framebuf[y * frame_width + x] = color;
-      return;
-   }
-
-   if (x > width or y > height) throw std::out_of_range("relative coordinates are too big for this area size");
-   framebuf[(y + yoffset) * frame_width + (x + xoffset)] = color;
-}
-
-} // graphics namespace
+} // graphics namespace end
