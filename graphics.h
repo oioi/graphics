@@ -6,7 +6,7 @@
 #include <type_traits>
 
 #include <cmath>
-#include <stdint.h>
+#include <cstdint>
 
 #include <SDL.h>
 
@@ -27,7 +27,7 @@ struct hsv_color
 {
    constexpr hsv_color(double h_ = 0, double s_ = 0, double v_ = 0, double a_ = 0) :
       h{h_}, s{s_}, v{v_}, a{a_} { }
-   rgb_color to_rgb();
+   rgb_color to_rgb() const;
 
    double h, s, v, a;
 };
@@ -45,6 +45,22 @@ struct point
    constexpr bool operator ==(const point &other) { return (x == other.x and y == other.y); }
 
    T x, y;
+};
+
+template <typename T = double>
+struct color_point : public point<T>
+{
+   using point<T>::point;
+   virtual uint32_t color() const = 0;
+};
+
+template <typename T = double>
+struct hsv_point : public color_point<T>, public hsv_color
+{
+   constexpr hsv_point(T x, T y, double h, double s, double v, double a = 0) :
+      color_point<T>{x, y}, hsv_color{h, s, v, a} { }
+
+   uint32_t color() const override { return to_rgb(); }
 };
 
 using area_coord = std::pair<point<uint_t>, point<uint_t>>;

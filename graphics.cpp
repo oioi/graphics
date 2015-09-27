@@ -77,7 +77,7 @@ rgb_color::operator uint32_t() const
    return (ab << 24) | (rb << 16) | (gb << 8) | bb;
 }
 
-rgb_color hsv_color::to_rgb()
+rgb_color hsv_color::to_rgb() const
 {
    if (0 == s) return rgb_color(v, v, v, a);
 
