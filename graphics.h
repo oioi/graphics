@@ -77,6 +77,7 @@ class bitmap
 
       void clear(uint8_t defb = 255);
       template <typename T> void setpixel(const point<T> &p, const rgb_color &color = {});
+      void setpixel(const point<unsigned long> &p, const rgb_color &color = {});
 
       coordinates type {coordinates::relative};
       area_coord box() const {
@@ -94,24 +95,9 @@ class bitmap
 template <typename T>
 void bitmap::setpixel(const point<T> &p, const rgb_color &color)
 {
-   point<long> pp;
-
    if (0 > p.x or 0 > p.y) throw std::out_of_range {"point has negative coordinates."};
-   if (std::is_floating_point<T>::value) pp = {std::lrint(p.x), std::lrint(p.y)};
-   else pp = p;
-
-   if (coordinates::absolute == type)
-   {
-      if (pp.x < offsets.width or pp.y < offsets.height or
-          pp.x > offsets.width + mapsize.width or pp.y > offsets.height + mapsize.height)
-         throw std::out_of_range {"point's absoulute coordinates are not in area"};
-      framebuf[pp.y * framesize.width + pp.x] = color;
-      return;
-   }
-
-   if (pp.x > mapsize.width or pp.y > mapsize.height)
-      throw std::out_of_range {"relative coordinates are too big for this area size"};
-   framebuf[(pp.y + offsets.height) * framesize.width + (pp.x + offsets.width)] = color;
+   point<unsigned long> pp {static_cast<unsigned long>(std::lrint(p.x)), static_cast<unsigned long>(std::lrint(p.y))};
+   setpixel(pp, color);
 }
 
 class sdl_main
@@ -148,8 +134,5 @@ class window : public sdl_main
 };
 
 } // grpahics namespace end
-
-
-
 
 #endif
