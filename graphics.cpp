@@ -51,7 +51,7 @@ void bitmap::clear(uint8_t defb)
       memset(framebuf + ((i + offsets.height) * framesize.width) + offsets.width, defb, sizeof(uint32_t) * mapsize.width);
 }
 
-void bitmap::setpixel(const point<unsigned long> &p, const rgb_color &color)
+void bitmap::setpixel(const point<unsigned long> &p, uint32_t color)
 {
    if (coordinates::absolute == type)
    {

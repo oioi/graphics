@@ -92,8 +92,8 @@ class bitmap
          framebuf{buf}, framesize{framesize_}, mapsize{mapsize_}, offsets{offsets_} { }
 
       void clear(uint8_t defb = 255);
-      template <typename T> void setpixel(const point<T> &p, const rgb_color &color = {});
-      void setpixel(const point<unsigned long> &p, const rgb_color &color = {});
+      template <typename T> void setpixel(const point<T> &p, uint32_t color = 0);
+      void setpixel(const point<unsigned long> &p, uint32_t color = 0);
 
       coordinates type {coordinates::relative};
       area_coord box() const {
@@ -109,7 +109,7 @@ class bitmap
 };
 
 template <typename T>
-void bitmap::setpixel(const point<T> &p, const rgb_color &color)
+void bitmap::setpixel(const point<T> &p, uint32_t color)
 {
    if (0 > p.x or 0 > p.y) throw std::out_of_range {"point has negative coordinates."};
    point<unsigned long> pp {static_cast<unsigned long>(std::lrint(p.x)), static_cast<unsigned long>(std::lrint(p.y))};

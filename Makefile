@@ -1,5 +1,5 @@
 CXX=mingw32-g++
-PREFIX = F:/mingw
+PREFIX = D:/v.petrov/mingw
 SDL_LIB = -L$(PREFIX)/SDL2-2.0.3/i686-w64-mingw32/lib -lSDL2main -lSDL2
 SDL_INCLUDE = -I$(PREFIX)/SDL2-2.0.3/include
 
