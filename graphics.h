@@ -98,7 +98,7 @@ class bitmap
       coordinates type {coordinates::relative};
       area_coord box() const {
          return std::make_pair(point<uint_t>{offsets.width, offsets.height},
-                               point<uint_t>{offsets.width + mapsize.width, offsets.height + mapsize.height});
+                               point<uint_t>{offsets.width + mapsize.width - 1, offsets.height + mapsize.height - 1});
       }
 
    private:

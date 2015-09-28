@@ -56,13 +56,13 @@ void bitmap::setpixel(const point<unsigned long> &p, uint32_t color)
    if (coordinates::absolute == type)
    {
       if (p.x < offsets.width or p.y < offsets.height or
-          p.x > offsets.width + mapsize.width or p.y > offsets.height + mapsize.height)
+          p.x >= offsets.width + mapsize.width or p.y >= offsets.height + mapsize.height)
          throw std::out_of_range {"point's absoulute coordinates are not in area"};
       framebuf[p.y * framesize.width + p.x] = color;
       return;
    }
 
-   if (p.x > mapsize.width or p.y > mapsize.height)
+   if (p.x >= mapsize.width or p.y >= mapsize.height)
       throw std::out_of_range {"relative coordinates are too big for this area size"};
    framebuf[(p.y + offsets.height) * framesize.width + (p.x + offsets.width)] = color;
 }
