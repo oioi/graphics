@@ -163,8 +163,8 @@ int main(int, char **)
 
    for (;;)
    {
-      hsv_point<> p1(xrandom(), yrandom(), 320, 1.0, 0.2);
-      hsv_point<> p2(xrandom(), yrandom(), 320, 1.0, 1.0);
+      hsv_point<> p1(xrandom(), yrandom(), 0, 1.0, 0.2);
+      hsv_point<> p2(xrandom(), yrandom(), 0, 1.0, 1.0);
       std::cerr << std::endl <<  "Line: " << p1 << " -> " << p2 << std::endl;
 
       mainarea->clear(220);

@@ -98,7 +98,7 @@ rgb_color hsv_color::to_rgb() const
       case 4: return rgb_color(t, p, v, a);
       case 5: 
       default:
-              return rgb_color(v, t, p, a);
+              return rgb_color(v, p, q, a);
    }
 }
 
