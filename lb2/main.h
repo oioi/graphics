@@ -13,9 +13,16 @@ struct edge
    double xend;
    double dx;
 
-   edge(double ymin_, double ymax_, double xstart_, double xend_) :
-      ymax{ymax_}, xstart{xstart_}, xend{xend_}, dx{(xend_ - xstart_) / (ymax_ - ymin_)} { }
+   hsv_color st_color;
+   hsv_color end_color;
+   double dh;
+   double ds;
+   double dv;
 
+   edge(double ymin_, double ymax_, double xstart_, double xend_, const hsv_color &st, const hsv_color &end);
+   edge(const edge &other) = default;
+
+   void shift();
    operator < (const edge &other) { return xstart < other.xstart; }
 };
 

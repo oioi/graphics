@@ -31,8 +31,22 @@ struct hsv_color
       h{h_}, s{s_}, v{v_}, a{a_} { }
    rgb_color to_rgb() const;
 
+   hsv_color& operator -=(const hsv_color &other) { h -= other.h; s -= other.s; v -= other.v; a -= other.a; return *this; }
+   hsv_color& operator +=(const hsv_color &other) { h += other.h; s += other.s; v += other.v; a += other.a; return *this; }
+
    double h, s, v, a;
 };
+
+hsv_color operator -(const hsv_color &c1, const hsv_color &c2);
+template <typename T> hsv_color operator /(const hsv_color &c1, T delim)
+{
+   hsv_color result {c1};
+   result.h /= delim;
+   result.s /= delim;
+   result.v /= delim;
+   result.a /= delim;
+   return result;
+}
 
 enum class coordinates {
    absolute,
@@ -59,8 +73,10 @@ struct color_point : public point<T>
 template <typename T = double>
 struct hsv_point : public color_point<T>, public hsv_color
 {
-   constexpr hsv_point(T x, T y, double h, double s, double v, double a = 0) :
+   constexpr hsv_point(T x, T y, double h = 0, double s = 0, double v = 0, double a = 0) :
       color_point<T>{x, y}, hsv_color{h, s, v, a} { }
+   constexpr hsv_point(T x, T y, const hsv_color &col) :
+      color_point<T>{x, y}, hsv_color{col} { }
 
    uint32_t color() const override { return to_rgb(); }
 };

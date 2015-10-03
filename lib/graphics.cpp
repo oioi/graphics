@@ -105,4 +105,10 @@ rgb_color hsv_color::to_rgb() const
    }
 }
 
+hsv_color operator -(const hsv_color &c1, const hsv_color &c2)
+{
+   hsv_color result {c1};
+   return result -= c2;
+}
+
 } // graphics namespace end
