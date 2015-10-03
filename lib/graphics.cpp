@@ -8,13 +8,14 @@ namespace graphics {
 
 bool sdl_main::init = false;
 unsigned sdl_main::refs = 0;
+std::mutex sdl_main::lock;
 
-// thread safety? who cares.
 sdl_main::sdl_main()
 {
+   std::lock_guard<std::mutex> {lock};
    refs++;
-   if (init) return;
 
+   if (init) return;
    if (0 != SDL_Init(SDL_INIT_VIDEO))
    {
       refs--;
@@ -24,7 +25,9 @@ sdl_main::sdl_main()
 
 sdl_main::~sdl_main()
 {
-   if (0 == --refs) SDL_Quit();
+   std::lock_guard<std::mutex> {lock};   
+   if (0 != --refs) return;
+   SDL_Quit();
    init = false;
 }
 

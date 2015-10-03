@@ -1,8 +1,10 @@
 #ifndef SDL_GRAPHICS_H
 #define SDL_GRAPHICS_H
 
+#include <iostream>
 #include <vector>
 #include <memory>
+#include <mutex>
 #include <type_traits>
 
 #include <cmath>
@@ -125,6 +127,7 @@ class sdl_main
    private:
       static bool init;
       static unsigned refs;
+      static std::mutex lock;
 };
 
 class window : public sdl_main
