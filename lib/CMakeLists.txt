@@ -1,2 +1,2 @@
-set(SOURCES graphics.cpp)
-add_library(libgraphics.a ${SOURCES})
+set(SOURCES color.cpp line.cpp raster.cpp window.cpp)
+add_library(graphics ${SOURCES})

@@ -23,7 +23,7 @@ struct edge
    edge(const edge &other) = default;
 
    void shift();
-   operator < (const edge &other) { return xstart < other.xstart; }
+   bool operator < (const edge &other) { return xstart < other.xstart; }
 };
 
 #endif
