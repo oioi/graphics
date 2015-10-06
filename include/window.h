@@ -20,7 +20,6 @@ class sdl_main
    private:
       static bool init;
       static unsigned refs;
-      static std::mutex lock;
 };
 
 class window : private sdl_main

@@ -36,7 +36,7 @@ int wait_event()
    }
 }
 
-int main(void)
+int main(int, char**)
 {
    window mainwin {"Lines", {win_width, win_height}};
    bitmap *mainarea = mainwin.get_bitmap();

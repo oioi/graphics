@@ -5,11 +5,9 @@ namespace graphics {
 
 bool sdl_main::init = false;
 unsigned sdl_main::refs = 0;
-std::mutex sdl_main::lock;
 
 sdl_main::sdl_main()
 {
-   std::lock_guard<std::mutex> {lock};
    refs++;
    if (init) return;
 
@@ -23,7 +21,6 @@ sdl_main::sdl_main()
 
 sdl_main::~sdl_main()
 {
-   std::lock_guard<std::mutex> {lock};   
    if (0 != --refs) return;
    SDL_Quit();
    init = false;
