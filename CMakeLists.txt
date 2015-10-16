@@ -16,7 +16,7 @@ set(SDL_LINK_FLAGS "-lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -lm
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic --std=c++11 -Dmain=SDL_main")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${SDL_LINK_FLAGS}")
 
-include_directories(${graphics_SOURCE_DIR}/include ${MINGW_PREFIX}/include)
+include_directories(${graphics_SOURCE_DIR}/include ${MINGW_PREFIX}/include ${MINGW_PREFIX}/include/SDL2)
 link_directories(${graphics_SOURCE_DIR}/lib ${MINGW_PREFIX}/lib)
 
 add_subdirectory(lib)

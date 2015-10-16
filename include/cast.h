@@ -5,14 +5,14 @@
 
 namespace graphics {
 
-template <typename from, typename to>
+template <typename to, typename from>
 to narrow_cast(from value)
 {
    auto result = static_cast<to>(value);
    if (static_cast<from>(result) != value)
-      throw std::runtime_error {"narrow_cast failed."};
+      throw std::runtime_error {"narrow_cast failed"};
    return result;
-}   
+}
 
 }
 

@@ -5,8 +5,7 @@
 #include <vector>
 #include <memory>
 
-#include <SDL2/SDL.h>
-
+#include "SDL.h"
 #include "raster.h"
 
 namespace graphics {
@@ -17,9 +16,12 @@ class sdl_main
       sdl_main();
       ~sdl_main();
 
-   private:
-      static bool init;
-      static unsigned refs;
+private:
+
+   // In theory this needs some kind of synchronisation mechanism.
+   // Since no multi-threaded use meant - we don't care.
+   static bool init;
+   static unsigned refs;
 };
 
 class window : private sdl_main
@@ -36,12 +38,12 @@ class window : private sdl_main
       bitmap * get_bitmap() { return get_bitmap(winsize); }
       bitmap * get_bitmap(const areasize &mapsize, const areasize &offsets = {});
 
-   private:
-      SDL_Window *win;
-      SDL_Surface *surface;
-      areasize winsize;
+private:
+   SDL_Window *win;
+   SDL_Surface *surface;
+   areasize winsize;
 
-      std::vector<std::unique_ptr<bitmap>> areas;
+   std::vector<std::unique_ptr<bitmap>> areas;
 };
 
 }

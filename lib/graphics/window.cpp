@@ -3,8 +3,8 @@
 
 namespace graphics {
 
-bool sdl_main::init = false;
-unsigned sdl_main::refs = 0;
+bool sdl_main::init {false};
+unsigned sdl_main::refs {0};
 
 sdl_main::sdl_main()
 {
@@ -14,7 +14,7 @@ sdl_main::sdl_main()
    if (0 != SDL_Init(SDL_INIT_VIDEO))
    {
       refs--;
-      throw std::runtime_error {"SDL init failed."};
+      throw std::runtime_error {"SDL Init failed."};
    }
    init = true;
 }
@@ -26,8 +26,7 @@ sdl_main::~sdl_main()
    init = false;
 }
 
-window::window(const char *title, const areasize &winsize_, uint_t xpos, uint_t ypos)
-   : winsize{winsize_}
+window::window(const char *title, const areasize &winsize_, uint_t xpos, uint_t ypos) : winsize {winsize_}
 {
    if (nullptr == (win = SDL_CreateWindow(title, xpos, ypos, winsize.width, winsize.height, SDL_WINDOW_SHOWN)))
       throw std::runtime_error {std::string {"Could not create window: "} + SDL_GetError()};

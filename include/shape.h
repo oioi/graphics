@@ -7,7 +7,7 @@ namespace graphics {
 
 using raster_t = bitmap;
 
-class shape 
+class shape
 {
    public:
       virtual void draw() = 0;
@@ -21,4 +21,5 @@ class rasterizer
 };
 
 }
+
 #endif

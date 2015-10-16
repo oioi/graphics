@@ -6,6 +6,7 @@
 
 #include "raster.h"
 #include "window.h"
+#include "events.h"
 
 #include "line.h"
 

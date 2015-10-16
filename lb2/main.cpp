@@ -1,9 +1,12 @@
+#include "graphics.h"
+
 #include <map>
+#include <vector>
 #include <list>
 #include <algorithm>
-#include <iomanip>
+#include <iostream>
 
-#include "main.h"
+using namespace graphics;
 
 enum winsize
 {
@@ -11,56 +14,54 @@ enum winsize
    win_width = 1024,
 };
 
-int handle_keyevent(const SDL_Event &event)
+struct polygon_edge
 {
-   switch (event.key.keysym.sym)
-   {
-      case SDLK_ESCAPE: return 1;
-      default: return 0;
-   }
-}
+   double ymax;
+   double xstart;
+   double xend;
+   double dx;
 
-int wait_event()
-{
-   SDL_Event event;
+   hsv_color st_color;
+   hsv_color end_color;
+   hsv_color dcolor;
 
-   for (;;)
-   {
-      SDL_WaitEvent(&event);      
-      switch (event.type)
-      {
-         case SDL_QUIT: return 1;
-         case SDL_KEYDOWN: return handle_keyevent(event);
-      }
-   }
-}
+   polygon_edge(const polygon_edge &other) = default;
+   polygon_edge(double ymin_, double ymax_, double xstart_, double xend_, const hsv_color &st, const hsv_color &end);
 
-edge::edge(double ymin_, double ymax_, double xstart_, double xend_, const hsv_color &st, const hsv_color &end) :
+   void shift() { xstart += dx; st_color += dcolor; }
+   bool operator <(const polygon_edge &other) { return xstart < other.xstart; }
+
+};
+
+polygon_edge::polygon_edge(double ymin_, double ymax_, double xstart_, double xend_, const hsv_color &st, const hsv_color &end) :
    ymax{ymax_}, xstart{xstart_}, xend{xend_}, st_color{st}, end_color{end}
 {
    dx = (xend - xstart) / (ymax - ymin_);
-   dh = (end_color.h - st_color.h) / (ymax - ymin_);
-   ds = (end_color.s - st_color.s) / (ymax - ymin_);
-   dv = (end_color.v - st_color.v) / (ymax - ymin_);
+   dcolor = (end_color - st_color) / (ymax - ymin_);
 }
 
-void edge::shift()
-{
-   xstart += dx;
-   st_color.h += dh;
-   st_color.s += ds;
-   st_color.v += dv;
-}
-
-
-using edge_table = std::map<double, std::vector<edge>>;
+using edge_table = std::map<double, std::vector<polygon_edge>>;
 using points_vect = std::vector<hsv_point<unsigned>>;
+
+std::ostream & operator <<(std::ostream &out, const edge_table &table)
+{
+   for (const auto &group : table)
+   {
+      out << "Group minimum Y: " << group.first << std::endl;
+
+      auto owidth = out.width();
+      out.width(10);
+      for (const auto &edge : group.second) out << edge.ymax << ' ' << edge.xstart << ' ' << edge.xend << ' ' << std::endl;
+      out.width(owidth);
+   }
+   return out;
+}
 
 edge_table build_groups(const points_vect &points, double &ymax)
 {
    edge_table edge_groups;
 
-   points_vect::const_iterator it {points.begin()};
+   points_vect::const_iterator it {points.cbegin()};
    points_vect::const_iterator next {it + 1};
    points_vect::const_iterator min, max;
    ymax = 0;
@@ -69,12 +70,12 @@ edge_table build_groups(const points_vect &points, double &ymax)
    {
       if (points.end() == next)
       {
-         next = points.begin();
+         next = points.cbegin();
          run = false;
       }
 
       min = it; max = next;
-      if (max->y == min->y) continue;
+      if (max->y == min->y) continue; // Skipping horizontal edges
 
       if (max->y < min->y) std::swap(min, max);
       if (max->y > ymax) ymax = max->y;
@@ -86,28 +87,26 @@ edge_table build_groups(const points_vect &points, double &ymax)
    return edge_groups;
 }
 
-void draw_polregion(bitmap *area, const std::list<edge> &active_edges, double y)
+void draw_polline(bitmap *area, const std::list<polygon_edge> &active_edges, double y)
 {
    auto xs = active_edges.cbegin();
    auto xe = xs;
-   bool drawing = true;
+   bool drawing {true};
 
-   point<unsigned> xit;
-   xit.y = lrint(y);
-
+   hsv_point<> xit {0, narrow_cast<unsigned, long>(lrint(y))};
    unsigned xend;
-   hsv_color hdsv, ccol;
+   hsv_color dcol;
 
    for (++xe; xe != active_edges.end(); ++xs, ++xe, drawing = !drawing)
    {
       if (!drawing) continue;
+
       xit.x = lrint(xs->xstart);
+      xit.colcomp() = xs->st_color;
       xend = lrint(xe->xstart);
+      dcol = (xe->st_color - xs->st_color) / (xe->xstart - xs->xstart);
 
-      ccol = xs->st_color;
-      hdsv = (xe->st_color - xs->st_color) / (xe->xstart - xs->xstart);
-
-      for (; xit.x < xend; xit.x++, ccol += hdsv) area->setpixel(xit, ccol.to_rgb());
+      for (; xit.x < xend; xit.x++, xit.colcomp() += dcol) area->setpixel(xit);
    }
 }
 
@@ -117,37 +116,36 @@ void polygon(bitmap *area, const points_vect &points)
 
    double ymax;
    edge_table edge_groups {build_groups(points, ymax)};
-   if (0 == edge_groups.size()) throw std::range_error {"Incorrect polygon area."};
+   if (0 == edge_groups.size()) throw std::range_error {"Incorrect polygon area"};
 
-   std::list<edge> active_edges;
+   std::list<polygon_edge> active_edges;
    for (double y = edge_groups.cbegin()->first; y <= ymax; y++)
    {
-      active_edges.remove_if([y](const edge &e) { return y >= e.ymax; });
+      active_edges.remove_if([y,ymax](const polygon_edge &e) { return (y == e.ymax && e.ymax < ymax); });
       if (edge_groups.end() != edge_groups.find(y))
          for (const auto &edge : edge_groups[y]) active_edges.push_back(edge);
+
+      if (2 > active_edges.size()) throw std::runtime_error {"Less than two active edges."};
       active_edges.sort();
 
-      draw_polregion(area, active_edges, y);
+      draw_polline(area, active_edges, y);
       for (auto &edge : active_edges) edge.shift();
    }
 }
 
 int main(int, char **)
 {
-   window mainwin {"Polygons", {win_width, win_height}};
+   window mainwin {"some", {win_width, win_height}};
    bitmap *mainarea = mainwin.get_bitmap();
-
    mainarea->clear();
 
-//     points_vect points {{100, 200, 150, 1.0, 0.2}, {400, 768, 150, 1.0, 0.3},
-//                         {768, 600, 150, 1.0, 0.7}, {700, 200, 150, 1.0, 0.2}, {500, 400, 150, 1.0, 0.9}};
-//   points_vect points {{100, 100, 150, 1.0, 0.6}, {300, 100, 150, 1.0, 0.9},
-//                       {300, 300, 150, 1.0, 0.75}, {100, 300, 150, 1.0, 0.1}};
-   points_vect points {{200, 100, 150, 1.0, 0.2}, {300, 350, 150, 1.0, 0.9}, {100, 300, 150, 1.0, 0.6}};
+   points_vect triangle {{200, 100, 150, 1.0, 0.2}, {300, 350, 150, 1.0, 0.9}, {100, 300, 150, 1.0, 0.6}};
+   points_vect rectangle {{ 100, 100, 150, 1.0, 0.6 }, { 300, 100, 150, 1.0, 0.9 }, {300, 300, 150, 1.0, 0.75}, {100, 300, 150, 1.0, 0.1}};
+   points_vect some {{100, 200, 150, 1.0, 0.2}, {400, 768, 150, 1.0, 0.3}, {768, 600, 150, 1.0, 0.7}, {700, 200, 150, 1.0, 0.2}, {500, 400, 150, 1.0, 0.9}};
 
-   polygon(mainarea, points);
+   polygon(mainarea, triangle);
    mainwin.update();
-   wait_event();
 
+   wait_keyevent();
    return 0;
 }
