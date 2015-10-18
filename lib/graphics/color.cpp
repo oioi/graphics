@@ -57,7 +57,7 @@ hsv_color operator *(const hsv_color &c, double mul)
 
 rgb_color hsv_color::to_rgb() const
 {
-   if (0 == s) return rgb_color{ v, v, v, a };
+   if (0 == s) return rgb_color {v, v, v, a};
 
    double hh = ((h >= 360.0) ? 0.0 : h) / 60.0;
    long i = (long)hh;

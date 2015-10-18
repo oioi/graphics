@@ -17,7 +17,7 @@ struct rgb_color
 
 struct hsv_color
 {
-   // NOTE: All constructors probably need invariant checks. H [0..360], S[0..1], V[0..1]
+   // NOTE: All constructors probably need invariant checks. H[0..360], S[0..1], V[0..1]
    constexpr hsv_color(double h_ = 0, double s_ = 0, double v_ = 0, double a_ = 0) :
       h{h_}, s{s_}, v{v_}, a{a_} { }
    // Actually needs a constructor accepting uint32_t argument

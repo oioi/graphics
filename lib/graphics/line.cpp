@@ -6,7 +6,7 @@
 
 namespace graphics {
 
-void clipline(const area_coord &box, line::lpoint &p, double dx, double dy, const line::lpoint::color_type &dcol, uint8_t &code)
+void clipline(const area_coord &box, hsv_point<double> &p, double dx, double dy, const hsv_color &dcol, uint8_t &code)
 {
    if (code & left)
    {
@@ -41,37 +41,11 @@ void clipline(const area_coord &box, line::lpoint &p, double dx, double dy, cons
    code = position_code(box, p);
 }
 
-void line::render()
+bool line_areacheck(const area_coord &box, hsv_point<> &start, hsv_point<> &end)
 {
-   if (start.x < 0 || start.y < 0 || end.x < 0 || end.y < 0)
-      throw std::out_of_range {"line has points with negative coordinates"};
+   hsv_point<double> first {start};
+   hsv_point<double> second {end};
 
-   hsv_point<> a {static_cast<unsigned long>(lrint(start.x)), static_cast<unsigned long>(lrint(start.y)), start};
-   hsv_point<> b {static_cast<unsigned long>(lrint(end.x)), static_cast<unsigned long>(lrint(end.y)), end};
-
-   const long dx = (b.x > a.x) ? b.x - a.x : a.x - b.x;
-   const long dy = (b.y > a.y) ? b.y - a.y : a.y - b.y;
-   const long sx = b.x > a.x ? 1 : -1;
-   const long sy = b.y > a.y ? 1 : -1;
-
-   long err = dx - dy;
-   hsv_color dcol {(end - start) / (dx > dy ? dx : dy)};
-
-   for (long e2; ; a.colcomp() += dcol)
-   {
-	   raster->setpixel(a);
-      if (a == b) break;
-
-      e2 = 2 * err;
-      if (e2 > -dy) { err -= dy; a.x += sx; }
-      if (e2 < dx)  { err += dx; a.y += sy; }
-   }
-}
-
-void line::areacheck()
-{
-   prepared = true;
-   area_coord box = raster->box();
    uint8_t k1 = position_code(box, start);
    uint8_t k2 = position_code(box, end);
 
@@ -80,18 +54,55 @@ void line::areacheck()
       if (0 == (k1 | k2))
       {
          std::cerr << "K1 = K2 = 0. Line is inside the area." << std::endl;
-         inside = true;
-         return;
+         start = {static_cast<unsigned long>(lrint(first.x)), static_cast<unsigned long>(lrint(first.y)), first};
+         end = {static_cast<unsigned long>(lrint(second.x)), static_cast<unsigned long>(lrint(second.y)), second};
+         return true;
       }
 
       if (0 != (k1 & k2))
       {
          std::cerr << "K1 & K2 != 0. Line is outside the area." << std::endl;
-         return;
+         return false;
       }
 
-      if (0 != k1) clipline(box, start, start.x - end.x, start.y - end.y, start - end, k1);
-      else clipline(box, end, start.x - end.x, start.y - end.y, start - end, k2);
+      if (0 != k1) clipline(box, first, first.x - second.x, first.y - second.y, first - second, k1);
+      else clipline(box, second, first.x - second.x, first.y - second.y, first - second, k2);
+   }
+}
+
+void area_line::draw()
+{
+   if (!checked)
+   {
+      checked = true;
+      start = orig_start;
+      end = orig_end;
+      inside = line_areacheck(raster->box(), start, end);
+   }
+
+   if (inside) render();
+}
+
+void line::render()
+{
+   hsv_point<> it = start;
+
+   const long dx = (end.x > start.x) ? end.x - start.x : start.x - end.x;
+   const long dy = (end.y > start.y) ? end.y - start.y : start.y - end.y;
+   const long sx = end.x > start.x ? 1 : -1;
+   const long sy = end.y > start.y ? 1 : -1;
+
+   long err = dx - dy;
+   hsv_color dcol {(end - start) / (dx > dy ? dx : dy)};
+
+   for (long e2; ; it.colcomp() += dcol)
+   {
+	   raster->setpixel(it);
+      if (it == end) break;
+
+      e2 = 2 * err;
+      if (e2 > -dy) { err -= dy; it.x += sx; }
+      if (e2 < dx)  { err += dx; it.y += sy; }
    }
 }
 

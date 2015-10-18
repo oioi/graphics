@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 #include "graphics.h"
 
 using namespace graphics;
@@ -37,7 +38,7 @@ int main(int, char **)
       mainarea->clear(220);
       cliparea->clear();
 
-      line second{cliparea, p1, p2};
+      area_line second{cliparea, p1, p2};
       second.draw();
       mainwin.update();
 

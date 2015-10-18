@@ -75,7 +75,7 @@ class bitmap
 template <typename T>
 void bitmap::setpixel(const point<T> &p, uint32_t color)
 {
-   if (0 > p.x || 0 >p.y) throw std::out_of_range {"point has negative coordinates"};
+   if (0 > p.x || 0 > p.y) throw std::out_of_range {"point has negative coordinates"};
    point<> pp {static_cast<unsigned long>(lrint(p.x)), static_cast<unsigned long>(lrint(p.y))};
    setpixel(pp, color);
 }
