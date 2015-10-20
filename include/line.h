@@ -11,18 +11,18 @@ namespace graphics {
 class line : public shape, protected rasterizer
 {
    public:
-      using ptype = unsigned long;
+      using ptype = double;
       using lpoint = hsv_point<ptype>;
 
       template <typename T>
       line(raster_t *rast, const hsv_point<T> &p1, const hsv_point<T> &p2) :
-         rasterizer(rast), start{p1}, end{p2} { }
+         rasterizer(rast), start(p1), end(p2) { }
 
       // Some kind of generic interface for any type of color point. Inteface specifies color() call,
       // so internal HSV color type should have a constructor accepting uint32_t initializer.
       template <typename T>
       line(raster_t *rast, const color_point<T> &p1, const color_point<T> &p2) :
-         rasterizer(rast), start{p1, p1.color()}, end{p2, p2.color()} { }
+         rasterizer(rast), start(p1, p1.color()), end(p2, p2.color()) { }
 
       virtual void draw() override { render(); }
 
@@ -37,9 +37,6 @@ class line : public shape, protected rasterizer
 class area_line : protected line
 {
    public:
-      using ptype = unsigned long;
-      using lpoint = hsv_point<ptype>;
-
       template <typename T>
       area_line(raster_t *rast, const hsv_point<T> &p1, const hsv_point<T> &p2) :
          line(rast, p1, p2), orig_start{p1}, orig_end{p2} { }
@@ -57,6 +54,8 @@ class area_line : protected line
       lpoint orig_start;
       lpoint orig_end;
 };
+
+void clipline(const area_coord &box, hsv_point<double> &p, double dx, double dy, const hsv_color &dcol, posval &code, bool recheck = false);
 
 }
 

@@ -15,22 +15,32 @@ enum class coordinates {
    relative
 };
 
-enum positions {
+using posval = uint8_t;
+enum class position : posval {
    left   = 1 << 0,
    right  = 1 << 1,
    bottom = 1 << 2,
    top    = 1 << 3
 };
 
-template <typename T>
-uint8_t position_code(const area_coord &box, const point<T> &p)
-{
-   uint8_t code = 0;
+inline constexpr position operator &(position A, position B) {
+   return static_cast<position>(static_cast<posval>(A) & static_cast<posval>(B)); }
 
-   if      (p.x < box.first.x)  code |= left;
-   else if (p.x > box.second.x) code |= right;
-   if      (p.y < box.first.y)  code |= top;
-   else if (p.y > box.second.y) code |= bottom;
+inline constexpr posval operator &(posval val, position pos) {
+   return val & static_cast<posval>(pos); }
+
+inline posval & operator |=(posval &val, position pos) {
+   return val |= static_cast<posval>(pos); }
+
+template <typename T>
+posval position_code(const area_coord &box, const point<T> &p)
+{
+   posval code = 0;
+
+   if      (p.x < box.first.x)  code |= position::left;
+   else if (p.x > box.second.x) code |= position::right;
+   if      (p.y < box.first.y)  code |= position::top;
+   else if (p.y > box.second.y) code |= position::bottom;
 
    return code;
 }

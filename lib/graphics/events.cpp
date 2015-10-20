@@ -5,7 +5,7 @@ int handle_keyevent(const SDL_Event &event)
 {
    switch (event.key.keysym.sym)
    {
-      case SDLK_ESCAPE: return 1;
+      case SDLK_ESCAPE: exit(0);
       default: return 0;
    }
 }
@@ -19,7 +19,7 @@ int wait_keyevent()
       SDL_WaitEvent(&event);
       switch (event.type)
       {
-         case SDL_QUIT: return 1;
+         case SDL_QUIT: exit(0);
          case SDL_KEYDOWN: return handle_keyevent(event);
       }
    }

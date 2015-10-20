@@ -6,30 +6,30 @@
 
 namespace graphics {
 
-void clipline(const area_coord &box, hsv_point<double> &p, double dx, double dy, const hsv_color &dcol, uint8_t &code)
+void clipline(const area_coord &box, hsv_point<double> &p, double dx, double dy, const hsv_color &dcol, posval &code, bool recheck)
 {
-   if (code & left)
+   if (code & position::left)
    {
       std::cerr << "Left clipping: ";
       p.y += dy * (box.first.x - p.x) / dx;
       p.colcomp() += dcol * (box.first.x - p.x) / dx;
       p.x = box.first.x;
    }
-   else if (code & right)
+   else if (code & position::right)
    {
       std::cerr << "Right clipping: ";
       p.y += dy * (box.second.x - p.x) / dx;
       p.colcomp() += dcol * (box.second.x - p.x) / dx;
       p.x = box.second.x;
    }
-   else if (code & bottom)
+   else if (code & position::bottom)
    {
       std::cerr << "Bottom clipping: ";
       p.x += dx * (box.second.y - p.y) / dy;
       p.colcomp() += dcol * (box.second.y - p.y) / dy;
       p.y = box.second.y;
    }
-   else if (code & top)
+   else if (code & position::top)
    {
       std::cerr << "Top clipping: ";
       p.x += dx * (box.first.y - p.y) / dy;
@@ -38,24 +38,19 @@ void clipline(const area_coord &box, hsv_point<double> &p, double dx, double dy,
    }
 
    std::cout << p << std::endl;
-   code = position_code(box, p);
+   if (recheck) code = position_code(box, p);
 }
 
-bool line_areacheck(const area_coord &box, hsv_point<> &start, hsv_point<> &end)
+bool line_areacheck(const area_coord &box, hsv_point<double> &start, hsv_point<double> &end)
 {
-   hsv_point<double> first {start};
-   hsv_point<double> second {end};
-
-   uint8_t k1 = position_code(box, start);
-   uint8_t k2 = position_code(box, end);
+   posval k1 = position_code(box, start);
+   posval k2 = position_code(box, end);
 
    for (;;)
    {
       if (0 == (k1 | k2))
       {
          std::cerr << "K1 = K2 = 0. Line is inside the area." << std::endl;
-         start = {static_cast<unsigned long>(lrint(first.x)), static_cast<unsigned long>(lrint(first.y)), first};
-         end = {static_cast<unsigned long>(lrint(second.x)), static_cast<unsigned long>(lrint(second.y)), second};
          return true;
       }
 
@@ -65,8 +60,8 @@ bool line_areacheck(const area_coord &box, hsv_point<> &start, hsv_point<> &end)
          return false;
       }
 
-      if (0 != k1) clipline(box, first, first.x - second.x, first.y - second.y, first - second, k1);
-      else clipline(box, second, first.x - second.x, first.y - second.y, first - second, k2);
+      if (0 != k1) clipline(box, start, start.x - end.x, start.y - end.y, start - end, k1, true);
+      else clipline(box, start, start.x - end.x, start.y - end.y, start - end, k2, true);
    }
 }
 
@@ -85,24 +80,28 @@ void area_line::draw()
 
 void line::render()
 {
-   hsv_point<> it = start;
+   if (0 > start.x || 0 > start.y || 0 > end.x || 0 > end.y)
+      throw std::range_error {"Line's points have negative coordinates."};
 
-   const long dx = (end.x > start.x) ? end.x - start.x : start.x - end.x;
-   const long dy = (end.y > start.y) ? end.y - start.y : start.y - end.y;
-   const long sx = end.x > start.x ? 1 : -1;
-   const long sy = end.y > start.y ? 1 : -1;
+   hsv_point<> rstart {static_cast<unsigned long>(lrint(start.x)), static_cast<unsigned long>(lrint(start.y)), start};
+   hsv_point<> rend {static_cast<unsigned long>(lrint(end.x)), static_cast<unsigned long>(lrint(end.y)), end};
+
+   const long dx = (rend.x > rstart.x) ? rend.x - rstart.x : rstart.x - rend.x;
+   const long dy = (rend.y > rstart.y) ? rend.y - rstart.y : rstart.y - rend.y;
+   const long sx = rend.x > rstart.x ? 1 : -1;
+   const long sy = rend.y > rstart.y ? 1 : -1;
 
    long err = dx - dy;
-   hsv_color dcol {(end - start) / (dx > dy ? dx : dy)};
+   hsv_color dcol {(rend - rstart) / (dx > dy ? dx : dy)};
 
-   for (long e2; ; it.colcomp() += dcol)
+   for (long e2; ; rstart.colcomp() += dcol)
    {
-	   raster->setpixel(it);
-      if (it == end) break;
+	   raster->setpixel(rstart);
+      if (rstart == rend) break;
 
       e2 = 2 * err;
-      if (e2 > -dy) { err -= dy; it.x += sx; }
-      if (e2 < dx)  { err += dx; it.y += sy; }
+      if (e2 > -dy) { err -= dy; rstart.x += sx; }
+      if (e2 < dx)  { err += dx; rstart.y += sy; }
    }
 }
 

@@ -9,5 +9,6 @@
 #include "events.h"
 
 #include "line.h"
+#include "polygon.h"
 
 #endif
