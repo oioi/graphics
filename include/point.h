@@ -9,7 +9,7 @@
 
 namespace graphics {
 
-template <typename T = unsigned long, typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
+template <typename T = long, typename = typename std::enable_if<std::is_arithmetic<T>::value>::type>
 struct point
 {
    constexpr point(T x_ = 0, T y_ = 0) : x{x_}, y{y_} { }
@@ -36,14 +36,14 @@ template <typename T>
 std::ostream & operator <<(std::ostream &out, const point<T> &p) {
    return out << '{' << p.x << ',' << p.y << '}'; }
 
-template <typename T = unsigned long>
+template <typename T = long>
 struct color_point : public point<T>
 {
    using point<T>::point;
    virtual uint32_t color() const = 0;
 };
 
-template <typename T = unsigned long>
+template <typename T = long>
 struct hsv_point : public color_point<T>, public hsv_color
 {
    constexpr hsv_point(T x, T y, double h = 0, double s = 0, double v = 0, double a = 0) :

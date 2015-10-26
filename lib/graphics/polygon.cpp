@@ -63,14 +63,14 @@ void polygon::build_groups()
       std::sort(group.second.begin(), group.second.end());
 }
 
-void polygon::draw_polline(const active_edge_table &active_edges, unsigned long y) const
+void polygon::draw_polline(const active_edge_table &active_edges, long y) const
 {
    active_edge_table::const_iterator it {active_edges.cbegin()};
    active_edge_table::const_iterator next {it};
    bool drawing {true};
 
    hsv_point<> xit {0, y};
-   unsigned xend;
+   long xend;
    hsv_color dcol;
 
    for (++next; next != active_edges.end(); ++it, ++next, drawing = !drawing)

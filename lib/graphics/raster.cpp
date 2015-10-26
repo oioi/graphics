@@ -12,6 +12,10 @@ void bitmap::clear(uint8_t def)
 
 void bitmap::setpixel(const point<> &p, uint32_t color)
 {
+   #ifndef GRC_NO_DEBUG
+   if (0 > p.x || 0 > p.y) throw std::out_of_range  {"point has negative coordinates"};
+   #endif
+
    if (coordinates::absolute == type)
    {
       if (p.x < offsets.width ||  p.y < offsets.height ||

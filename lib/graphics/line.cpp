@@ -61,7 +61,7 @@ bool line_areacheck(const area_coord &box, hsv_point<double> &start, hsv_point<d
       }
 
       if (0 != k1) clipline(box, start, start.x - end.x, start.y - end.y, start - end, k1, true);
-      else clipline(box, start, start.x - end.x, start.y - end.y, start - end, k2, true);
+      else clipline(box, end, start.x - end.x, start.y - end.y, start - end, k2, true);
    }
 }
 
@@ -83,8 +83,8 @@ void line::render()
    if (0 > start.x || 0 > start.y || 0 > end.x || 0 > end.y)
       throw std::range_error {"Line's points have negative coordinates."};
 
-   hsv_point<> rstart {static_cast<unsigned long>(lrint(start.x)), static_cast<unsigned long>(lrint(start.y)), start};
-   hsv_point<> rend {static_cast<unsigned long>(lrint(end.x)), static_cast<unsigned long>(lrint(end.y)), end};
+   hsv_point<> rstart {lrint(start.x), lrint(start.y), start};
+   hsv_point<> rend {lrint(end.x), lrint(end.y), end};
 
    const long dx = (rend.x > rstart.x) ? rend.x - rstart.x : rstart.x - rend.x;
    const long dy = (rend.y > rstart.y) ? rend.y - rstart.y : rstart.y - rend.y;

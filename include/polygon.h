@@ -55,7 +55,7 @@ class polygon : public shape, protected rasterizer
       edge_table edge_groups;
 
       void build_groups();
-      void draw_polline(const active_edge_table &active_edges, unsigned long y) const;
+      void draw_polline(const active_edge_table &active_edges, long y) const;
 };
 
 class area_polygon : protected polygon

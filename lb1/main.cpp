@@ -19,25 +19,22 @@ int main(int, char **)
    srand(narrow_cast<unsigned, time_t>(time(nullptr)));
    auto xrandom = []() { return rand() % win_width; };
    auto yrandom = []() { return rand() % win_height; };
+   auto clear = [mainarea, cliparea]() { mainarea->clear(220); cliparea->clear(); };
 
    for (;;)
    {
       hsv_point<> p1(xrandom(), yrandom(), 0, 1.0, 0.2);
       hsv_point<> p2(xrandom(), yrandom(), 350, 1.0, 1.0);
-      std::cerr << std::endl << "Line: " << p1 << " ->" << p2 << std::endl;
+      std::cerr << std::endl << "Line: " << p1 << " -> " << p2 << std::endl;
 
-      mainarea->clear(220);
-      cliparea->clear();
-
+      clear();
       line first {mainarea, p1, p2};
       first.draw();
       mainwin.update();
 
       if (wait_keyevent()) break;
 
-      mainarea->clear(220);
-      cliparea->clear();
-
+      clear();
       area_line second{cliparea, p1, p2};
       second.draw();
       mainwin.update();
