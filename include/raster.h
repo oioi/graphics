@@ -8,8 +8,6 @@
 
 namespace graphics {
 
-using uint_t = unsigned long;
-
 enum class coordinates {
    absolute,
    relative
@@ -47,10 +45,11 @@ posval position_code(const area_coord &box, const point<T> &p)
 
 struct areasize
 {
-   uint_t width;
-   uint_t height;
+   long width;
+   long height;
 
-   areasize(uint_t width_ = 0, uint_t height_ = 0) : width{width_}, height{height_} { }
+   areasize(long width_ = 0, long height_ = 0) : width{width_}, height{height_} {
+      if (0 > width || 0 > height) throw std::range_error {"Negative area component"}; }
    areasize(const areasize &other) : width{other.width}, height{other.height} { }
 };
 

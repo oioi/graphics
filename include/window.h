@@ -26,7 +26,7 @@ class window : private sdl_main
 {
    public:
       window(const char *title, const areasize &winsize_,
-             uint_t xpos = SDL_WINDOWPOS_UNDEFINED, uint_t ypos = SDL_WINDOWPOS_UNDEFINED);
+             long xpos = SDL_WINDOWPOS_UNDEFINED, long ypos = SDL_WINDOWPOS_UNDEFINED);
       ~window() { SDL_DestroyWindow(win); }
 
       void lock()   const { SDL_LockSurface(surface); }

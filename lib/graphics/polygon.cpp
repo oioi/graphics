@@ -97,9 +97,11 @@ void polygon::render()
          for (const auto &edge : edge_groups[y]) active_edges.push_back(edge);
       active_edges.remove_if([y, this](const polygon_edge &e) { return (y >= e.ymax && e.ymax < ymax); });
       
+      #ifndef GRC_NO_DEBUG
       if (2 > active_edges.size()) throw std::runtime_error {"Less than two active edges."};
-      active_edges.sort();
+      #endif
 
+      active_edges.sort();
       draw_polline(active_edges, y);
       for (auto &edge : active_edges) edge.shift();
    }

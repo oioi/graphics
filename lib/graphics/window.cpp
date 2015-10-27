@@ -26,7 +26,7 @@ sdl_main::~sdl_main()
    init = false;
 }
 
-window::window(const char *title, const areasize &winsize_, uint_t xpos, uint_t ypos) : winsize {winsize_}
+window::window(const char *title, const areasize &winsize_, long xpos, long ypos) : winsize {winsize_}
 {
    if (nullptr == (win = SDL_CreateWindow(title, xpos, ypos, winsize.width, winsize.height, SDL_WINDOW_SHOWN)))
       throw std::runtime_error {std::string {"Could not create window: "} + SDL_GetError()};

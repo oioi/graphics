@@ -10,35 +10,49 @@ void clipline(const area_coord &box, hsv_point<double> &p, double dx, double dy,
 {
    if (code & position::left)
    {
+      #ifndef GRC_NO_DEBUG
       std::cerr << "Left clipping: ";
+      #endif
+
       p.y += dy * (box.first.x - p.x) / dx;
       p.colcomp() += dcol * (box.first.x - p.x) / dx;
       p.x = box.first.x;
    }
    else if (code & position::right)
    {
+      #ifndef GRC_NO_DEBUG
       std::cerr << "Right clipping: ";
+      #endif
+
       p.y += dy * (box.second.x - p.x) / dx;
       p.colcomp() += dcol * (box.second.x - p.x) / dx;
       p.x = box.second.x;
    }
    else if (code & position::bottom)
    {
+      #ifndef GRC_NO_DEBUG
       std::cerr << "Bottom clipping: ";
+      #endif
+
       p.x += dx * (box.second.y - p.y) / dy;
       p.colcomp() += dcol * (box.second.y - p.y) / dy;
       p.y = box.second.y;
    }
    else if (code & position::top)
    {
+      #ifndef GRC_NO_DEBUG
       std::cerr << "Top clipping: ";
+      #endif
+
       p.x += dx * (box.first.y - p.y) / dy;
       p.colcomp() += dcol * (box.first.y - p.y) / dy;
       p.y = box.first.y;
    }
 
-   std::cout << p << std::endl;
    if (recheck) code = position_code(box, p);
+   #ifndef GRC_NO_DEBUG
+   std::cerr << p << std::endl;
+   #endif
 }
 
 bool line_areacheck(const area_coord &box, hsv_point<double> &start, hsv_point<double> &end)
@@ -50,13 +64,17 @@ bool line_areacheck(const area_coord &box, hsv_point<double> &start, hsv_point<d
    {
       if (0 == (k1 | k2))
       {
+         #ifndef GRC_NO_DEBUG
          std::cerr << "K1 = K2 = 0. Line is inside the area." << std::endl;
+         #endif
          return true;
       }
 
       if (0 != (k1 & k2))
       {
+         #ifndef GRC_NO_DEBUG
          std::cerr << "K1 & K2 != 0. Line is outside the area." << std::endl;
+         #endif
          return false;
       }
 
@@ -80,8 +98,10 @@ void area_line::draw()
 
 void line::render()
 {
+   #ifndef GRC_NO_DEBUG
    if (0 > start.x || 0 > start.y || 0 > end.x || 0 > end.y)
       throw std::range_error {"Line's points have negative coordinates."};
+   #endif
 
    hsv_point<> rstart {lrint(start.x), lrint(start.y), start};
    hsv_point<> rend {lrint(end.x), lrint(end.y), end};
