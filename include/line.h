@@ -7,6 +7,13 @@
 
 namespace graphics {
 
+enum class clipmode
+{
+   width  = 1,
+   height = 2,
+   depth  = 3
+};
+
 // Line class, that doesn't check if it's coordinates fit into provided rasterizer areasize.
 class line : public shape, protected rasterizer
 {
@@ -27,35 +34,24 @@ class line : public shape, protected rasterizer
       virtual void draw() override { render(); }
 
    protected:
+      void render();
+
       lpoint start;
       lpoint end;
-
-      void render();
 };
 
 // Checks if it fits.
 class area_line : protected line
 {
    public:
-      template <typename T>
-      area_line(raster_t *rast, const hsv_point<T> &p1, const hsv_point<T> &p2) :
-         line(rast, p1, p2), orig_start{p1}, orig_end{p2} { }
-
-      template <typename T2>
-      area_line(raster_t *rast, const color_point<T2> &p1, const color_point<T2> &p2) :
-         line(rast, p1, p2), orig_start{p1, p1.color()}, orig_end{p2, p2.color()} { }
-
-      void draw() override;
+      using line::line;
+      void draw() override { if (areacheck(raster->box(), start, end)) render(); }
 
    private:
-      bool checked {false};
-      bool inside {false};
-
-      lpoint orig_start;
-      lpoint orig_end;
+      bool areacheck(const area_coord &box, hsv_point<double> &start, hsv_point<double> &end);
 };
 
-void clipline(const area_coord &box, hsv_point<double> &p, double dx, double dy, const hsv_color &dcol, posval &code, bool recheck = false);
+hsv_point<double> clipline(const hsv_point<double> &p1, const hsv_point<double> &p2, double newval, clipmode mode);
 
 }
 

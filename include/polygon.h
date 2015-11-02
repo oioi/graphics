@@ -45,10 +45,9 @@ class polygon : public shape, protected rasterizer
       virtual void draw_contour();
 
    protected:
-      points_vect points;
-      bool changed {true};
-
       void render();
+      points_vect points;
+      bool built {false};
 
    private:
       long ymax;
@@ -61,20 +60,16 @@ class polygon : public shape, protected rasterizer
 class area_polygon : protected polygon
 {
    public:
-      area_polygon(raster_t *rast, const std::initializer_list<ppoint> &list) :
-         polygon(rast, list), origin_points {list} { origin_points.push_back(*list.begin()); }
-      area_polygon(raster_t *rast, const points_vect &vect) :
-         polygon(rast, vect), origin_points(vect) { origin_points.push_back(vect.front()); }
+      using polygon::polygon;
 
-      void draw() override;
+      void draw();
       void draw_contour() override;
 
    private:
       bool checked {false};
       bool inside {false};
-      points_vect origin_points;
 
-      void clip();
+      void areacheck();
       points_vect clip_side(raster_t *area, const points_vect &points, position mode);
 };
 

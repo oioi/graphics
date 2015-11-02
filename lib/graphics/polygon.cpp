@@ -87,7 +87,7 @@ void polygon::draw_polline(const active_edge_table &active_edges, long y) const
 
 void polygon::render()
 {
-   if (changed) { changed = false; build_groups(); }
+   if (!built) { built = true; build_groups(); }
    if (0 == edge_groups.size()) throw std::range_error {"Incorrect polygon area"};
 
    std::list<polygon_edge> active_edges;
@@ -96,7 +96,7 @@ void polygon::render()
       if (edge_groups.end() != edge_groups.find(y))      
          for (const auto &edge : edge_groups[y]) active_edges.push_back(edge);
       active_edges.remove_if([y, this](const polygon_edge &e) { return (y >= e.ymax && e.ymax < ymax); });
-      
+
       #ifndef GRC_NO_DEBUG
       if (2 > active_edges.size()) throw std::runtime_error {"Less than two active edges."};
       #endif
@@ -136,7 +136,7 @@ area_polygon::points_vect area_polygon::clip_side(raster_t *area, const points_v
             if (it->y < box.first.y) code1 |= mode;
             if (next->y < box.first.y) code2 |= mode;
             break;
-         
+
          case position::bottom:
             if (it->y > box.second.y) code1 |= mode;
             if (next->y > box.second.y) code2 |= mode;
@@ -147,17 +147,19 @@ area_polygon::points_vect area_polygon::clip_side(raster_t *area, const points_v
       else if ((0 == code1) && (0 == code2)) output.push_back(*next);
       else if ((0 != code1) && (0 == code2))
       {
-         points_vect::value_type clip = *it;
-         clipline(box, clip, next->x - it->x, next->y - it->y, *next - *it, code1);
-         output.push_back(clip);
+         if      (code1 & position::left)   output.push_back(clipline(*it, *next, box.first.x,  clipmode::width));
+         else if (code1 & position::right)  output.push_back(clipline(*it, *next, box.second.x, clipmode::width));
+         else if (code1 & position::bottom) output.push_back(clipline(*it, *next, box.second.y, clipmode::height));
+         else if (code1 & position::top)    output.push_back(clipline(*it, *next, box.first.y,  clipmode::height));
          output.push_back(*next);
       }
 
       else if ((0 == code1) && (0 != code2))
       {
-         points_vect::value_type clip = *next;
-         clipline(box, clip, next->x - it->x, next->y - it->y, *next - *it, code2);
-         output.push_back(clip);
+         if      (code2 & position::left)   output.push_back(clipline(*next, *it, box.first.x,  clipmode::width));
+         else if (code2 & position::right)  output.push_back(clipline(*next, *it, box.second.x, clipmode::width));
+         else if (code2 & position::bottom) output.push_back(clipline(*next, *it, box.second.y, clipmode::height));
+         else if (code2 & position::top)    output.push_back(clipline(*next, *it, box.first.y,  clipmode::height));
       }
    }
 
@@ -165,12 +167,10 @@ area_polygon::points_vect area_polygon::clip_side(raster_t *area, const points_v
    return output;
 }
 
-void area_polygon::clip()
+void area_polygon::areacheck()
 {
    static const std::array<position, 4> pos {position::left, position::top, position::right, position::bottom};
-
-   points = origin_points;
-   changed = checked = true;
+   checked = true;
 
    for (auto & mode : pos)
    {
@@ -182,13 +182,13 @@ void area_polygon::clip()
 
 void area_polygon::draw()
 {
-   if (!checked) clip();
+   if (!checked) areacheck();
    if (inside) polygon::render();
 }
 
 void area_polygon::draw_contour()
 {
-   if (!checked) clip();
+   if (!checked) areacheck();
    if (inside) polygon::draw_contour();
 }
 

@@ -31,6 +31,9 @@ class camera
       double getNear() const { return znear; }
       double getFar() const { return zfar; }
 
+      const Eigen::Vector3d & getPos() const { return camera_pos; }
+      const Eigen::Vector3d & getFront() const { return camera_front; }
+
    private:
       double yaw       {90.0};
       double pitch     {0.0};
@@ -43,7 +46,7 @@ class camera
       Eigen::Vector3d camera_pos   {0.0, 0.0, 0.0};
       Eigen::Vector3d camera_front {0.0, 0.0, 1.0};
       Eigen::Vector3d camera_up    {0.0, 1.0, 0.0};
- 
+
       Eigen::Matrix4d Mp;
       Eigen::Matrix4d Mv;
 
@@ -81,7 +84,7 @@ void camera::move_camera()
    Eigen::Vector3d frontv {camera_front[0], 0, camera_front[2]};
    frontv.normalize();
    Eigen::Vector3d rightv {frontv.cross(camera_up)};
-   
+
    if (move_dirs[front]) camera_pos += frontv * move_speed;
    if (move_dirs[back]) camera_pos -= frontv * move_speed;
    if (move_dirs[right]) camera_pos += rightv * move_speed;
@@ -98,9 +101,9 @@ void camera::buildM()
    const Eigen::Vector3d Y = X.cross(Z);
 
    Mv << X[0],  X[1],  X[2], -X.dot(camera_pos),
-         Y[0],  Y[1],  Y[2], -Y.dot(camera_pos),
-        -Z[0], -Z[1], -Z[2],  Z.dot(camera_pos),
-            0,     0,     0,         1;
+      Y[0],  Y[1],  Y[2], -Y.dot(camera_pos),
+      -Z[0], -Z[1], -Z[2],  Z.dot(camera_pos),
+      0,     0,     0,         1;
 }
 
 void camera::m_pitch(double angle)
@@ -114,13 +117,13 @@ int handle_key(const SDL_Event &event, camera &cam, bool state)
 {
    switch (event.key.keysym.sym)
    {
-      case SDLK_ESCAPE: return 1;
+   case SDLK_ESCAPE: return 1;
 
-      case SDLK_w: cam.move_dirs[front] = state; break;
-      case SDLK_s: cam.move_dirs[back] = state; break;
-      case SDLK_d: cam.move_dirs[right] = state; break;
-      case SDLK_a: cam.move_dirs[left] = state; break;
-      default: return 0;
+   case SDLK_w: cam.move_dirs[front] = state; break;
+   case SDLK_s: cam.move_dirs[back] = state; break;
+   case SDLK_d: cam.move_dirs[right] = state; break;
+   case SDLK_a: cam.move_dirs[left] = state; break;
+   default: return 0;
    }
 
    return 0;
@@ -151,7 +154,7 @@ void pline(const Eigen::Vector3d &p1, const Eigen::Vector3d &p2, const camera &c
    double far = -cam.getFar();
 
    if ((dp1[2] > near && dp2[2] > near) ||
-       (dp1[2] < far && dp2[2] < far )) return;
+      (dp1[2] < far && dp2[2] < far )) return;
 
    double dx = dp2[0] - dp1[0];
    double dy = dp2[1] - dp1[1];
@@ -187,6 +190,7 @@ int main(int, char **)
    enum winsize { win_width = 1280, win_height = 720 };
 
    camera cam {65.0, 16.0 / 9.0, 0.1, 100.0};
+   char buffer [2048];
 
    SDL_ShowCursor(0);
    SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -229,6 +233,13 @@ int main(int, char **)
       pline({7.0, -2.0, 10.0}, {5.0, 2.0, 8.0}, cam, mainarea);
       pline({3.0, -2.0, 10.0}, {5.0, 2.0, 8.0}, cam, mainarea);
 
+      const Eigen::Vector3d &camera_pos = cam.getPos();
+      const Eigen::Vector3d &camera_front = cam.getFront();
+
+      snprintf(buffer, 2048, "Camera position: %f %f %f     Front vector: %f %f %f",
+         camera_pos[0], camera_pos[1], camera_pos[2], camera_front[0], camera_front[1], camera_front[2]);
+      mainwin.write_text(buffer);
+
       mainwin.update();
 
       for (;;)
@@ -238,10 +249,10 @@ int main(int, char **)
 
          switch (event.type)
          {
-            case SDL_QUIT: running = false; break;
-            case SDL_KEYDOWN: if (handle_key(event, cam, true)) running = false; break;
-            case SDL_KEYUP: handle_key(event, cam, false); break;
-            case SDL_MOUSEMOTION: handle_mouse(event, cam); break;
+         case SDL_QUIT: running = false; break;
+         case SDL_KEYDOWN: if (handle_key(event, cam, true)) running = false; break;
+         case SDL_KEYUP: handle_key(event, cam, false); break;
+         case SDL_MOUSEMOTION: handle_mouse(event, cam); break;
          }
       }
 
@@ -258,4 +269,3 @@ int main(int, char **)
 
    return 0;
 }
-

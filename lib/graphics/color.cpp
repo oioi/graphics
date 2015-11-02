@@ -69,14 +69,14 @@ rgb_color hsv_color::to_rgb() const
 
    switch (i)
    {
-   case 0: return rgb_color(v, t, p, a);
-   case 1: return rgb_color(q, v, p, a);
-   case 2: return rgb_color(p, v, t, a);
-   case 3: return rgb_color(p, q, v, a);
-   case 4: return rgb_color(t, p, v, a);
-   case 5:
-   default:
-      return rgb_color(v, p, q, a);
+      case 0: return rgb_color(v, t, p, a);
+      case 1: return rgb_color(q, v, p, a);
+      case 2: return rgb_color(p, v, t, a);
+      case 3: return rgb_color(p, q, v, a);
+      case 4: return rgb_color(t, p, v, a);
+      case 5:
+      default:
+         return rgb_color(v, p, q, a);
    }
 }
 

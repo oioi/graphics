@@ -6,62 +6,49 @@
 
 namespace graphics {
 
-void clipline(const area_coord &box, hsv_point<double> &p, double dx, double dy, const hsv_color &dcol, posval &code, bool recheck)
+hsv_point<double> clipline(const hsv_point<double> &p1, const hsv_point<double> &p2, double newval, clipmode mode)
 {
-   if (code & position::left)
-   {
-      #ifndef GRC_NO_DEBUG
-      std::cerr << "Left clipping: ";
-      #endif
+   double dx = p2.x - p1.x;
+   double dy = p2.y - p1.y;
+   double dz = p2.z - p1.z;
 
-      p.y += dy * (box.first.x - p.x) / dx;
-      p.colcomp() += dcol * (box.first.x - p.x) / dx;
-      p.x = box.first.x;
-   }
-   else if (code & position::right)
-   {
-      #ifndef GRC_NO_DEBUG
-      std::cerr << "Right clipping: ";
-      #endif
+   hsv_point<double> result {p1};
+   hsv_color dcol {p2.colcomp() - p1.colcomp()};
 
-      p.y += dy * (box.second.x - p.x) / dx;
-      p.colcomp() += dcol * (box.second.x - p.x) / dx;
-      p.x = box.second.x;
-   }
-   else if (code & position::bottom)
+   switch (mode)
    {
-      #ifndef GRC_NO_DEBUG
-      std::cerr << "Bottom clipping: ";
-      #endif
+      case clipmode::width:
+         result.y += dy * (newval - result.x) / dx;
+         result.z += dz * (newval - result.x) / dx;
+         result.colcomp() += dcol * (newval - result.x) / dx;
+         result.x = newval;
+         break;
 
-      p.x += dx * (box.second.y - p.y) / dy;
-      p.colcomp() += dcol * (box.second.y - p.y) / dy;
-      p.y = box.second.y;
-   }
-   else if (code & position::top)
-   {
-      #ifndef GRC_NO_DEBUG
-      std::cerr << "Top clipping: ";
-      #endif
+      case clipmode::height:
+         result.x += dx * (newval - result.y) / dy;
+         result.z += dz * (newval - result.y) / dy;
+         result.colcomp() += dcol * (newval - result.y) / dy;
+         result.y = newval;
+         break;
 
-      p.x += dx * (box.first.y - p.y) / dy;
-      p.colcomp() += dcol * (box.first.y - p.y) / dy;
-      p.y = box.first.y;
+      case clipmode::depth:
+         result.x += dx * (newval - result.z) / dz;
+         result.y += dy * (newval - result.z) / dz;
+         result.colcomp() += dcol * (newval - result.z) / dz;
+         result.z = newval;
+         break;
    }
 
-   if (recheck) code = position_code(box, p);
-   #ifndef GRC_NO_DEBUG
-   std::cerr << p << std::endl;
-   #endif
+   return result;
 }
 
-bool line_areacheck(const area_coord &box, hsv_point<double> &start, hsv_point<double> &end)
+bool area_line::areacheck(const area_coord &box, hsv_point<double> &start, hsv_point<double> &end)
 {
-   posval k1 = position_code(box, start);
-   posval k2 = position_code(box, end);
-
-   for (;;)
+   for (posval k1, k2;;)
    {
+      k1 = position_code(box, start);
+      k2 = position_code(box, end);
+
       if (0 == (k1 | k2))
       {
          #ifndef GRC_NO_DEBUG
@@ -78,22 +65,22 @@ bool line_areacheck(const area_coord &box, hsv_point<double> &start, hsv_point<d
          return false;
       }
 
-      if (0 != k1) clipline(box, start, start.x - end.x, start.y - end.y, start - end, k1, true);
-      else clipline(box, end, start.x - end.x, start.y - end.y, start - end, k2, true);
-   }
-}
+      if (0 != k1)
+      {
+         if      (k1 & position::left)   start = clipline(start, end, box.first.x,  clipmode::width);
+         else if (k1 & position::right)  start = clipline(start, end, box.second.x, clipmode::width);
+         else if (k1 & position::bottom) start = clipline(start, end, box.second.y, clipmode::height);
+         else if (k1 & position::top)    start = clipline(start, end, box.first.y,  clipmode::height);
+      }
 
-void area_line::draw()
-{
-   if (!checked)
-   {
-      checked = true;
-      start = orig_start;
-      end = orig_end;
-      inside = line_areacheck(raster->box(), start, end);
+      else
+      {
+         if      (k2 & position::left)   end = clipline(end, start, box.first.x,  clipmode::width);
+         else if (k2 & position::right)  end = clipline(end, start, box.second.x, clipmode::width);
+         else if (k2 & position::bottom) end = clipline(end, start, box.second.y, clipmode::height);
+         else if (k2 & position::top)    end = clipline(end, start, box.first.y,  clipmode::height);
+      }
    }
-
-   if (inside) render();
 }
 
 void line::render()
@@ -116,7 +103,7 @@ void line::render()
 
    for (long e2; ; rstart.colcomp() += dcol)
    {
-	   raster->setpixel(rstart);
+      raster->setpixel(rstart);
       if (rstart == rend) break;
 
       e2 = 2 * err;

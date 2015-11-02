@@ -53,10 +53,11 @@ struct areasize
    areasize(const areasize &other) : width{other.width}, height{other.height} { }
 };
 
+// Basic rasterization class, which ignores possible point's Z-coordinate. Just prints some actual pixels.
 class bitmap
 {
    public:
-      bitmap(uint32_t *buf, areasize mapsize_, const areasize &framesize_, const areasize &offsets_) :
+      bitmap(uint32_t *buf, const areasize &mapsize_, const areasize &framesize_, const areasize &offsets_) :
          framebuf{buf}, framesize{framesize_}, mapsize{mapsize_}, offsets{offsets_} { }
 
       void clear(uint8_t defb = 255);
@@ -69,10 +70,11 @@ class bitmap
       area_coord box() const
       {
          return std::make_pair(
-               point<> {offsets.width, offsets.height},
-               point<> {offsets.width + mapsize.width - 1, offsets.height + mapsize.height - 1}
+            point<> {offsets.width, offsets.height},
+            point<> {offsets.width + mapsize.width - 1, offsets.height + mapsize.height - 1}
          );
       }
+
 
    private:
       uint32_t *framebuf;

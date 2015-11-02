@@ -23,11 +23,12 @@ polygon::points_vect make_figure(window *win, bitmap *map)
          case SDL_QUIT: exit(0); break;
          case SDL_KEYDOWN:
 
-            switch (event.key.keysym.sym)
-            {
-               case SDLK_RETURN: if (0 != figure.size()) return figure;
-               case SDLK_ESCAPE: exit(0);
-            }
+         switch (event.key.keysym.sym)
+         {
+            case SDLK_RETURN: if (0 != figure.size()) return figure;
+            case SDLK_ESCAPE: exit(0);
+         }
+         break;
 
          case SDL_MOUSEBUTTONDOWN:
 
@@ -56,9 +57,7 @@ int main(int, char **)
    window mainwin {"Polygons", {win_width, win_height}};
    bitmap *mainarea = mainwin.get_bitmap();
    bitmap *cliparea = mainwin.get_bitmap({win_width / 2, win_height / 2}, {win_width / 4, win_height / 4});
-
    auto clear = [mainarea, cliparea]() { mainarea->clear(220); cliparea->clear(); };
-   auto step = [&mainwin]() { mainwin.update(); wait_keyevent(); };
 
    for (;;)
    {
@@ -68,18 +67,24 @@ int main(int, char **)
       polygon::points_vect figure {make_figure(&mainwin, mainarea)};
       polygon pol1 {mainarea, figure};
       pol1.draw_contour();
-      step();
+
+      mainwin.update();
+      if (basic_wait_keyevent()) break;
 
       for (auto &p : figure) std::cerr << p << std::endl;
 
       clear();
       area_polygon pol2 {cliparea, figure};
       pol2.draw_contour();
-      step();
+
+      mainwin.update();
+      if (basic_wait_keyevent()) break;
 
       clear();
       pol2.draw();
-      step();
+
+      mainwin.update();
+      if (basic_wait_keyevent()) break;
    }
 
    return 0;

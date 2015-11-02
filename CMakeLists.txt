@@ -12,7 +12,7 @@ set(CMAKE_AR ${CROSS_TOOLCHAIN}ar)
 set(CMAKE_RANLIB ${CROSS_TOOLCHAIN}ranlib)
 set(CMAKE_CXX_COMPILER ${CROSS_TOOLCHAIN}g++)
 
-set(SDL_LINK_FLAGS "-lmingw32 -lSDL2main -lSDL2 -mwindows -Wl,--no-undefined -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -static-libgcc")
+set(SDL_LINK_FLAGS "-lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -mwindows -Wl,--no-undefined -lm -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -static-libgcc")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic --std=c++11 -Dmain=SDL_main -O2 -DEIGEN_NO_DEBUG -DGRC_NO_DEBUG")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${SDL_LINK_FLAGS}")
 

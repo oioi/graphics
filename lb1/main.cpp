@@ -1,5 +1,6 @@
 #include <iostream>
 #include <ctime>
+
 #include "graphics.h"
 
 using namespace graphics;
@@ -10,9 +11,9 @@ enum winsize
    win_width = 1024,
 };
 
-int main(int, char **)
+int main(int, char**)
 {
-   window mainwin{ "Lines",{ win_width, win_height } };
+   window mainwin {"Lines", {win_width, win_height} };
    bitmap *mainarea = mainwin.get_bitmap();
    bitmap *cliparea = mainwin.get_bitmap({win_width / 2, win_height / 2}, {win_width / 4, win_height / 4});
 
@@ -23,8 +24,8 @@ int main(int, char **)
 
    for (;;)
    {
-      hsv_point<> p1(xrandom(), yrandom(), 0, 1.0, 0.2);
-      hsv_point<> p2(xrandom(), yrandom(), 350, 1.0, 1.0);
+      hsv_point<> p1(xrandom(), yrandom(), 0, 0, 1.0, 0.2);
+      hsv_point<> p2(xrandom(), yrandom(), 0, 350, 1.0, 1.0);
       std::cerr << std::endl << "Line: " << p1 << " -> " << p2 << std::endl;
 
       clear();
@@ -32,14 +33,14 @@ int main(int, char **)
       first.draw();
       mainwin.update();
 
-      if (wait_keyevent()) break;
+      if (basic_wait_keyevent()) break;
 
       clear();
       area_line second{cliparea, p1, p2};
       second.draw();
       mainwin.update();
 
-      if (wait_keyevent()) break;
+      if (basic_wait_keyevent()) break;
    }
 
    return 0;

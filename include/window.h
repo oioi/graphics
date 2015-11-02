@@ -4,7 +4,9 @@
 #include <vector>
 #include <memory>
 
-#include "SDL.h"
+#include <SDL.h>
+#include <SDL_ttf.h>
+
 #include "raster.h"
 
 namespace graphics {
@@ -27,20 +29,24 @@ class window : private sdl_main
    public:
       window(const char *title, const areasize &winsize_,
              long xpos = SDL_WINDOWPOS_UNDEFINED, long ypos = SDL_WINDOWPOS_UNDEFINED);
-      ~window() { SDL_DestroyWindow(win); }
+      ~window();
 
-      void lock()   const { SDL_LockSurface(surface); }
-      void unlock() const { SDL_UnlockSurface(surface); }
-      void update() const { SDL_UpdateWindowSurface(win); }
+      void update() const;
 
       bitmap * get_bitmap() { return get_bitmap(winsize); }
       bitmap * get_bitmap(const areasize &mapsize, const areasize &offsets = {});
 
+      void write_text(const char *string);
+
    private:
       SDL_Window *win;
-      SDL_Surface *surface;
-      areasize winsize;
+      SDL_Renderer *renderer;
+      SDL_Surface *screen;
+      SDL_Texture *texture;
 
+      TTF_Font *font;
+
+      areasize winsize;
       std::vector<std::unique_ptr<bitmap>> areas;
 };
 
