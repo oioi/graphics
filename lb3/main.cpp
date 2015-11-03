@@ -6,6 +6,7 @@
 
 using namespace graphics;
 
+enum winsize { win_width = 1024, win_height = 576 };
 enum move_dir
 {
    front = 0,
@@ -145,7 +146,6 @@ void clip_depth(Eigen::Vector4d &p, double dx, double dy, double dz, double dept
 
 void pline(const Eigen::Vector3d &p1, const Eigen::Vector3d &p2, const camera &cam, bitmap *raster)
 {
-   enum winsize { win_width = 1280, win_height = 720 };
    const Eigen::Matrix4d &Mv = cam.getMv();
    Eigen::Vector4d dp1 = Mv * Eigen::Vector4d {p1[0], p1[1], p1[2], 1.0};
    Eigen::Vector4d dp2 = Mv * Eigen::Vector4d {p2[0], p2[1], p2[2], 1.0};
@@ -187,7 +187,7 @@ void pline(const Eigen::Vector3d &p1, const Eigen::Vector3d &p2, const camera &c
 
 int main(int, char **)
 {
-   enum winsize { win_width = 1280, win_height = 720 };
+
 
    camera cam {65.0, 16.0 / 9.0, 0.1, 100.0};
    const size_t bufsize {512};

@@ -5,8 +5,8 @@ using namespace graphics;
 
 enum winsize
 {
-   win_height = 768,
-   win_width = 1024,
+   win_height = 660,
+   win_width = 880
 };
 
 polygon::points_vect make_figure(window *win, bitmap *map)
