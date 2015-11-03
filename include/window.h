@@ -17,6 +17,8 @@ class sdl_main
       sdl_main();
       ~sdl_main();
 
+      static TTF_Font *font;
+
    private:
       // In theory this needs some kind of synchronisation mechanism.
       // Since no multi-threaded use meant - we don't care.
@@ -43,8 +45,6 @@ class window : private sdl_main
       SDL_Renderer *renderer;
       SDL_Surface *screen;
       SDL_Texture *texture;
-
-      TTF_Font *font;
 
       areasize winsize;
       std::vector<std::unique_ptr<bitmap>> areas;

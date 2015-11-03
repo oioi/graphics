@@ -1,34 +1,38 @@
 #include <stdexcept>
 #include "window.h"
 
-#include <iostream>
-
 namespace graphics {
 
 bool sdl_main::init {false};
 unsigned sdl_main::refs {0};
+TTF_Font * sdl_main::font {nullptr};
 
 sdl_main::sdl_main()
 {
-   refs++;
-   if (init) return;
+   if (init) { refs++; return; }
 
    if (0 != SDL_Init(SDL_INIT_VIDEO))
-   {
-      refs--;
       throw std::runtime_error {"SDL Init failed."};
-   }
+
+   if (-1 == TTF_Init())
+      throw std::runtime_error {std::string {"TTF Init failed: "} + TTF_GetError()};
+   if (nullptr == (font = TTF_OpenFont("arial.ttf", 14)))
+      throw std::runtime_error {std::string {"Could not open fontfile: "} + TTF_GetError()};
+
+   refs++;
    init = true;
 }
 
 sdl_main::~sdl_main()
 {
    if (0 != --refs) return;
+   TTF_CloseFont(font);
+   TTF_Quit();
    SDL_Quit();
    init = false;
 }
 
-window::window(const char *title, const areasize &winsize_, long xpos, long ypos) : winsize{ winsize_ }
+window::window(const char *title, const areasize &winsize_, long xpos, long ypos) : winsize{winsize_}
 {
    if (nullptr == (win = SDL_CreateWindow(title, xpos, ypos, winsize.width, winsize.height, SDL_WINDOW_SHOWN)))
       throw std::runtime_error {std::string {"Could not create window: "} + SDL_GetError()};
@@ -39,18 +43,14 @@ window::window(const char *title, const areasize &winsize_, long xpos, long ypos
       throw std::runtime_error {std::string {"Could not create screen RGB surface: "} + SDL_GetError()};
    if (nullptr == (texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, winsize.width, winsize.height)))
       throw std::runtime_error {std::string {"Could not create screen GPU texture: "} + SDL_GetError()};
-
-   TTF_Init();
-   if (nullptr == (font = TTF_OpenFont("arial.ttf", 14)))
-      throw std::runtime_error {std::string {"Could not open fontfile: "} + TTF_GetError()};
 }
 
 window::~window()
 {
    SDL_DestroyTexture(texture);
+   SDL_FreeSurface(screen);
+   SDL_DestroyRenderer(renderer);
    SDL_DestroyWindow(win);
-   TTF_CloseFont(font);
-   TTF_Quit();
 }
 
 void window::update() const
@@ -70,7 +70,7 @@ bitmap * window::get_bitmap(const areasize &mapsize, const areasize &offsets)
 
 void window::write_text(const char *string)
 {
-   SDL_Surface *text = TTF_RenderText_Solid(font, string, {0, 0, 0, 1});
+   SDL_Surface *text = TTF_RenderText_Solid(font, string, {0, 0, 0});
    SDL_Rect location = {0, 0, 0, 0};
    SDL_BlitSurface(text, nullptr, screen, &location);
    SDL_FreeSurface(text);
